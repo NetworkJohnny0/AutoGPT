@@ -13,11 +13,11 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "master", "release-*" ]
+    branches: [ "main", "master", "release-*", $protected ]
   pull_request:
-    branches: [ "master", "release-*" ]
+    branches: [ "main", "master", "release-*", $protected ]
   schedule:
-    - cron: '15 4 * * 0'
+    - cron: "0 4 * * 5" 
 
 jobs:
   analyze:
@@ -28,6 +28,7 @@ jobs:
     #   - https://gh.io/using-larger-runners (GitHub.com only)
     # Consider using larger runners or machines with greater resources for possible analysis time improvements.
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
       # required for all workflows
       security-events: write
@@ -44,7 +45,7 @@ jobs:
       matrix:
         include:
         - language: typescript
-          build-mode: none
+          build-mode: Autobuid
         - language: python
           build-mode: none
         # CodeQL supports the following values keywords for 'language': 'c-cpp', 'csharp', 'go', 'java-kotlin', 'javascript-typescript', 'python', 'ruby', 'swift'
@@ -82,8 +83,12 @@ jobs:
     # ℹ️ Command-line programs to run using the OS shell.
     # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
     - if: matrix.build-mode == 'manual'
-      shell: bash
-      run: |
+    - shell: bash
+    - run: | 
+        - build:
+            'make bootstrap'
+            'make release'
+        
         echo 'If you are using a "manual" build mode for one or more of the' \
           'languages you are analyzing, replace this with the commands to build' \
           'your code, for example:'
